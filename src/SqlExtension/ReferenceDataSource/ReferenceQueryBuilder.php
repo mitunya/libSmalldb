@@ -5,9 +5,9 @@
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *     http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,7 +18,7 @@
 
 namespace Smalldb\StateMachine\SqlExtension\ReferenceDataSource;
 
-use Doctrine\DBAL\Driver\Statement;
+use Doctrine\DBAL\Result;
 use Doctrine\DBAL\Query\QueryBuilder as DoctrineQueryBuilder;
 use Smalldb\StateMachine\Definition\StateMachineDefinition;
 use Smalldb\StateMachine\Provider\SmalldbProviderInterface;
@@ -53,11 +53,11 @@ class ReferenceQueryBuilder extends DoctrineQueryBuilder
 
 	public function executeRef(): ReferenceQueryResult
 	{
-		$stmt = parent::execute();
-		if ($stmt instanceof Statement) {
+		$result = parent::execute();
+		if ($result instanceof Result) {
 			// Wrap statement with something we can use to fetch references
-			return new ReferenceQueryResult($this->dataSource, $stmt);
-		} else {
+			return new ReferenceQueryResult($this->dataSource, $result);
+                } else {
 			throw new LogicException("Executed statement returns unexpected result.");
 		}
 	}
@@ -83,17 +83,17 @@ class ReferenceQueryBuilder extends DoctrineQueryBuilder
 		$countQuery->select('COUNT(*)');
 		$countQuery->setFirstResult(null);
 		$countQuery->setMaxResults(null);
-		$stmt = $countQuery->execute();
-		$resultCount = (int) $stmt->fetchColumn();
+		$result = $countQuery->execute();
+		$resultCount = (int) $result->fetchColumn();
 
 		// Get result statement
 		$this->setFirstResult(($page - 1) * $pageSize);
 		$this->setMaxResults($pageSize);
-		$stmt = parent::execute();
+		$result = parent::execute();
 
-		if ($stmt instanceof Statement) {
+		if ($result instanceof Result) {
 			// Wrap statement with something we can use to fetch references
-			return new ReferenceQueryResultPaginated($this->dataSource, $stmt, $resultCount, $page, $pageSize);
+			return new ReferenceQueryResultPaginated($this->dataSource, $result, $resultCount, $page, $pageSize);
 		} else {
 			throw new LogicException("Executed statement returns unexpected result.");
 		}

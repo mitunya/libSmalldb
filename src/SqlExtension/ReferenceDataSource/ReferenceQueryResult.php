@@ -5,9 +5,9 @@
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *     http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,7 +18,7 @@
 
 namespace Smalldb\StateMachine\SqlExtension\ReferenceDataSource;
 
-use Doctrine\DBAL\Driver\Statement;
+use Doctrine\DBAL\Result;
 use Doctrine\DBAL\FetchMode;
 use IteratorAggregate;
 use Smalldb\StateMachine\ReferenceInterface;
@@ -27,25 +27,25 @@ use Traversable;
 
 class ReferenceQueryResult extends DataSource implements IteratorAggregate
 {
-	private Statement $stmt;
+	private Result $result;
 
 
-	public function __construct(?DataSource $originalDataSource, Statement $stmt)
+	public function __construct(?DataSource $originalDataSource, Result $result)
 	{
 		parent::__construct($originalDataSource);
-		$this->stmt = $stmt;
+		$this->result = $result;
 	}
 
 
 	public function getWrappedStatement(): Statement
 	{
-		return $this->stmt;
+		return $this->result;
 	}
 
 
 	public function fetch(): ?ReferenceInterface
 	{
-		$row = $this->stmt->fetch(FetchMode::ASSOCIATIVE);
+		$row = $this->result->fetch(FetchMode::ASSOCIATIVE);
 		if ($row === false) {
 			return null;
 		} else {
@@ -63,7 +63,7 @@ class ReferenceQueryResult extends DataSource implements IteratorAggregate
 	public function fetchAll(): array
 	{
 		$list = [];
-		while (($row = $this->stmt->fetch(FetchMode::ASSOCIATIVE)) !== false) {
+		while (($row = $this->result->fetch(FetchMode::ASSOCIATIVE)) !== false) {
 			$ref = new $this->refClass($this->smalldb, $this->machineProvider, $this);
 			/** @noinspection PhpUndefinedMethodInspection */
 			($this->refClass)::hydrateFromArray($ref, $row);
@@ -75,7 +75,7 @@ class ReferenceQueryResult extends DataSource implements IteratorAggregate
 
 	public function getIterator(): Traversable
 	{
-		while (($row = $this->stmt->fetch(FetchMode::ASSOCIATIVE)) !== false) {
+		while (($row = $this->result->fetch(FetchMode::ASSOCIATIVE)) !== false) {
 			$ref = new $this->refClass($this->smalldb, $this->machineProvider, $this);
 			/** @noinspection PhpUndefinedMethodInspection */
 			($this->refClass)::hydrateFromArray($ref, $row);
